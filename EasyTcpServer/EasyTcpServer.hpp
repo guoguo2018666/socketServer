@@ -161,7 +161,8 @@ public:
 	}
 	void Start() {
 		for (int n = 0; n < 4; n++) {
-			auto ser = new CellServer(_sock);
+			std::shared_ptr<CellServer> ser = std::make_shared<CellServer>(_sock);
+			//auto ser = new CellServer(_sock);
 			_cellServers.push_back(ser);
 			ser->setNetEventObj(this);
 			ser->Start();
@@ -274,7 +275,8 @@ private:
 	SOCKET _sock;
 	std::vector<std::shared_ptr<ClientSocket>> _clients;
 	//std::vector<std::shared_ptr<ClientSocket>> _clients;
-	std::vector<CellServer*> _cellServers;
+	//std::vector<CellServer*> _cellServers;
+	std::vector<std::shared_ptr<CellServer>> _cellServers;
 
 	bool _bFirst = true;
 
