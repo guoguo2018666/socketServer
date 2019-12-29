@@ -2,7 +2,7 @@
 #define _EasyTcpServer_hpp_
 
 
-//#include "alloc.h"
+#include "alloc.h"
 #define CELLSERVER_NUM 4
 #ifdef _WIN32
 

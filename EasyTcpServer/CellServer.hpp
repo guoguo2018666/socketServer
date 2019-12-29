@@ -1,8 +1,9 @@
 #ifndef _CELL_SERVER_hpp_
 #define _CELL_SERVER_hpp_
 #define CELLSERVER_NUM 4
-#ifdef _WIN32
 
+#include "alloc.h"
+#ifdef _WIN32
 #define FD_SETSIZE 10240
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -28,7 +29,7 @@
 #include "CellTask.hpp"
 #include "INetEvent.h"
 #include "CellSendMsgTask.hpp"
-//#include "alloc.h"
+
 
 class CellServer
 {

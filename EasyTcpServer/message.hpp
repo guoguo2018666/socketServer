@@ -1,8 +1,7 @@
-
 #ifndef _message_hpp_
 #define _message_hpp_
 
-
+#include "alloc.h"
 
 //结构化数据-方式1
 struct DataPackage

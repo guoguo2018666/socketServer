@@ -1,5 +1,6 @@
 #ifndef _CEllTASK_hpp_
 #define _CEllTASK_hpp_
+#include "alloc.h"
 #include <mutex>
 #include <thread>
 #include <atomic>
@@ -39,8 +40,10 @@ public:
 	}
 	//void addTask(CellTask* pCellTask) {
 	void addTask(std::shared_ptr<CellTask> pCellTask) {
+		std::cout << "addTask begin" << std::endl;
 		std::lock_guard<std::mutex> lg(_mutex);
 		_tasksBuf.push_back(pCellTask);
+		std::cout << "addTask end" << std::endl;
 	}
 	//Æô¶¯Ïß³Ì
 	void start() {

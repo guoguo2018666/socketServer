@@ -1,3 +1,5 @@
+
+#include "alloc.h"
 #include "EasyTcpServer.hpp"
 
 int main() {

@@ -110,6 +110,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="alloc.h" />
     <ClInclude Include="CellSendMsgTask.hpp" />
     <ClInclude Include="CellServer.hpp" />
     <ClInclude Include="CellTask.hpp" />
@@ -117,9 +118,11 @@
     <ClInclude Include="ClientSocket.hpp" />
     <ClInclude Include="EasyTcpServer.hpp" />
     <ClInclude Include="INetEvent.h" />
+    <ClInclude Include="memoryMgr.hpp" />
     <ClInclude Include="message.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="alloc.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
