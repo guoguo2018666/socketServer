@@ -120,6 +120,7 @@
     <ClInclude Include="INetEvent.h" />
     <ClInclude Include="memoryMgr.hpp" />
     <ClInclude Include="message.hpp" />
+    <ClInclude Include="objectPool.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="alloc.cpp" />

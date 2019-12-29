@@ -139,8 +139,9 @@ public:
 				send(_clients[n]->sockfd(), (const char *)&userJoin, sizeof(userJoin), 0);
 			}*/
 			//_clients.push_back(new ClientSocket(cSock));
-			std::shared_ptr<ClientSocket> pClientSocket = std::make_shared<ClientSocket>(cSock);
+			//std::shared_ptr<ClientSocket> pClientSocket = std::make_shared<ClientSocket>(cSock);
 			//addClientToCellServer(new ClientSocket(cSock));
+			std::shared_ptr<ClientSocket> pClientSocket(new ClientSocket(cSock));
 			addClientToCellServer(pClientSocket);
 		}
 

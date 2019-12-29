@@ -1,7 +1,7 @@
 #ifndef _CLIENT_SOCKET_hpp_
 #define _CLIENT_SOCKET_hpp_
 
-
+#include "objectPool.hpp"
 #define CELLSERVER_NUM 4
 #ifdef _WIN32
 
@@ -36,7 +36,7 @@
 
 
 
-class ClientSocket
+class ClientSocket:public ObjectPoolBase<ClientSocket,100>
 {
 public:
 	ClientSocket(SOCKET sockfd = INVALID_SOCKET) {
