@@ -1,7 +1,7 @@
 #ifndef _CLIENT_SOCKET_hpp_
 #define _CLIENT_SOCKET_hpp_
 
-#include "objectPool.hpp"
+//#include "objectPool.hpp"
 #define CELLSERVER_NUM 4
 #ifdef _WIN32
 
@@ -32,11 +32,12 @@
 #define RECV_BUFF_SIZE 1024*10
 #define SEND_BUFF_SIZE 1024*10
 
+//客戶端心跳檢測死亡計時時間
+#define CLIENT_HEART_DEAD_TIME 5000 
 
 
-
-
-class ClientSocket:public ObjectPoolBase<ClientSocket,100>
+//class ClientSocket:public ObjectPoolBase<ClientSocket,100>
+class ClientSocket
 {
 public:
 	ClientSocket(SOCKET sockfd = INVALID_SOCKET) {
@@ -45,6 +46,9 @@ public:
 		memset(_szMsgBuf, 0, RECV_BUFF_SIZE);
 		_unSendSize = 0;
 		memset(_szSendBuf, 0, SEND_BUFF_SIZE);
+
+		resetDtHeart();
+		_oldTime = CELLTime::getNowTimeInMillsec();
 	}
 	virtual ~ClientSocket() {
 
@@ -112,6 +116,25 @@ public:
 		return ret;
 	}
 
+	void resetDtHeart() {
+		_dtHeart = 0;
+	}
+
+	bool checkHeart(time_t dt) {
+		_dtHeart += dt;
+		if (_dtHeart >= CLIENT_HEART_DEAD_TIME) {
+			std::cout << "超時[" << _sockfd << "]--time["<<_dtHeart<<"]" << std::endl;
+			return true;
+		}
+		return false;
+	}
+
+	time_t getOldTime() {
+		return _oldTime;
+	}
+	void setOldTime(time_t oldTime) {
+		_oldTime = oldTime;
+	}
 private:
 	SOCKET _sockfd;
 	//第二缓冲区--处理数据缓冲区
@@ -123,6 +146,11 @@ private:
 	char _szSendBuf[SEND_BUFF_SIZE];
 	int _unSendSize;
 	CellTimestemp _timestemp;
+
+	//心跳計時
+	time_t _dtHeart;
+
+	time_t _oldTime ;
 
 };
 

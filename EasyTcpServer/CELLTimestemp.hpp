@@ -1,10 +1,31 @@
 
 #ifndef _CellTimestemp_hpp_
 #define _CellTimestemp_hpp_
-#include "alloc.h"
+//#include "alloc.h"
 #include <chrono>
 
 using namespace std::chrono;
+
+
+class CELLTime
+{
+public:
+	CELLTime() {
+
+	}
+	~CELLTime() {
+
+	}
+
+public:
+	//«@È¡®”Ç°•rég´Á
+	static time_t getNowTimeInMillsec() {	
+		return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
+	}
+
+};
+
+
 
 class CellTimestemp
 {

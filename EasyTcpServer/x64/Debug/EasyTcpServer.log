@@ -1,35 +1,5 @@
 ﻿  main.cpp
-c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\cellserver.hpp(246): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\cellserver.hpp(276): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
 c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\easytcpserver.hpp(194): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
-c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(72): warning C4267: “初始化”: 从“size_t”转换到“char”，可能丢失数据
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(61): note: 编译类 模板 成员函数“void *ObjectPool<Type,100>::allocObjectMemory(std::size_t)”时
-          with
-          [
-              Type=ClientSocket
-          ]
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(139): note: 参见对正在编译的函数 模板 实例化“void *ObjectPool<Type,100>::allocObjectMemory(std::size_t)”的引用
-          with
-          [
-              Type=ClientSocket
-          ]
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(144): note: 参见对正在编译的类 模板 实例化“ObjectPool<Type,100>”的引用
-          with
-          [
-              Type=ClientSocket
-          ]
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(142): note: 编译类 模板 成员函数“void ObjectPoolBase<ClientSocket,100>::operator delete(void *)”时
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\clientsocket.hpp(127): note: 参见对正在编译的函数 模板 实例化“void ObjectPoolBase<ClientSocket,100>::operator delete(void *)”的引用
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\clientsocket.hpp(40): note: 参见对正在编译的类 模板 实例化“ObjectPoolBase<ClientSocket,100>”的引用
-c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(109): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(93): note: 编译类 模板 成员函数“void ObjectPool<Type,100>::initPool(void)”时
-          with
-          [
-              Type=ClientSocket
-          ]
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(65): note: 参见对正在编译的函数 模板 实例化“void ObjectPool<Type,100>::initPool(void)”的引用
-          with
-          [
-              Type=ClientSocket
-          ]
   EasyTcpServer.vcxproj -> C:\Users\home\Documents\Visual Studio 2015\Projects\beifen1\EasyTcpServer\x64\Debug\EasyTcpServer.exe
   EasyTcpServer.vcxproj -> C:\Users\home\Documents\Visual Studio 2015\Projects\beifen1\EasyTcpServer\x64\Debug\EasyTcpServer.pdb (Partial PDB)

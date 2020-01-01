@@ -2,7 +2,7 @@
 #define _CELL_SERVER_hpp_
 #define CELLSERVER_NUM 4
 
-#include "alloc.h"
+//#include "alloc.h"
 #ifdef _WIN32
 #define FD_SETSIZE 10240
 
@@ -113,9 +113,12 @@ public:
 		//timePrintf(pClient->sockfd());
 		//int nLen = recv(cSock, szRecv, sizeof(header), 0);
 		if (nLen <= 0) {
-			std::cout << "与服务器断开连接，任务结束" << std::endl;
+			std::cout <<"["<< pClient->sockfd()<< "]与服务器断开连接，任务结束" << std::endl;
 			return -1;
 		}
+
+		//有數據到來，重置心跳
+		//pClient->resetDtHeart();
 
 		//std::cout << "接受客户端的数据长度[" << nLen << "]" << std::endl;
 
@@ -158,9 +161,12 @@ public:
 
 			LoginResult *ret = new LoginResult();
 			//send(pClient->sockfd(), (char*)&ret, sizeof(ret), 0);
-			//pClient->SendData((DataHeader*)&ret);
+			pClient->SendData((DataHeader*)&ret);
 			
-			addSendTask(pClient, (DataHeader*)ret);
+			//begin服務器發送與接收分離代碼，現在先注釋掉
+			//addSendTask(pClient, (DataHeader*)ret);
+			//end服務器發送與接收分離代碼，現在先注釋掉
+
 			_msgSend++;
 
 			break;
@@ -176,6 +182,24 @@ public:
 			//send(_cSock, (char*)&header, sizeof(header), 0);
 			LoginOutResult ret = {};
 			send(pClient->sockfd(), (char*)&ret, sizeof(ret), 0);
+			break;
+		}
+		case CMD_HEART_C2S:
+		{
+			HeartC2S *heartC2S = (HeartC2S *)(pClient->msgBuf());
+			pClient->resetDtHeart();
+
+			//std::cout << "收到客戶端["<<pClient->sockfd()<<"]的心跳" << std::endl;
+
+			//向客戶端回送消息
+
+			std::shared_ptr<HeartS2C>ret (new HeartS2C());
+			pClient->SendData((DataHeader*)(ret.get()));
+
+			//begin服務器發送與接收分離代碼，現在先注釋掉
+			//addSendTask(pClient, (DataHeader*)ret);
+			//end服務器發送與接收分離代碼，現在先注釋掉
+
 			break;
 		}
 		default:
@@ -199,20 +223,22 @@ public:
 				std::lock_guard<std::mutex> lgggg(_mutex);
 				for (auto pClient : _clientsBuff) {
 					_clients.push_back(pClient);
-
-					//FD_SET(pClient->sockfd(), &fdReads);
-					//FD_SET(pClient->sockfd(), &fdWrites);
-					//FD_SET(pClient->sockfd(), &fdExecpts);
+					pClient->setOldTime(CELLTime::getNowTimeInMillsec());
+					std::cout << "++++++++++++++++[" << pClient->sockfd() << std::endl;
 				}
 				_clientsBuff.clear();
 				_clients_change = true;
+				//_oldTime = CELLTime::getNowTimeInMillsec();
+
+				
 			}
-			else {
+			/*else {
 				_clients_change = false;
-			}
+			}*/
 
 			if (_clients.size() <= 0) {
-				Sleep(1000);
+				Sleep(2000);
+				std::cout << "_clients length is ["<< _clients.size() <<"]" << std::endl;
 				continue;
 			}
 
@@ -225,8 +251,10 @@ public:
 
 			_maxSock = _clients[0]->sockfd();
 			if (_clients_change) {
+				
 				_clients_change = false;
-
+				std::cout << "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxchange clients size[" << _clients.size() << "]" << std::endl;
+				//if(_clients.size()<)
 				for (int n = 0; n < (int)_clients.size(); n++) {
 
 					FD_SET(_clients[n]->sockfd(), &fdReads);
@@ -234,6 +262,8 @@ public:
 					if (_maxSock < _clients[n]->sockfd()) {
 						_maxSock = _clients[n]->sockfd();
 					}
+
+					
 				}
 
 				memcpy(&_fdRead_bak, &fdReads, sizeof(fd_set));
@@ -247,32 +277,60 @@ public:
 
 			if (ret < 0) {
 				std::cout << "select发送错误，任务结束" << std::endl;
-				return;
+				//return;
 			}
 
+			ReadData(fdReads);
 
+			
+
+			CheckTime();
+
+		}
+	}
+
+	//time_t _oldTime = CELLTime::getNowTimeInMillsec();
+	void CheckTime() {
+		for (auto iter = _clients.begin(); iter != _clients.end(); iter++) {
+			time_t oldTime = (*iter)->getOldTime();
+			time_t nowTime = CELLTime::getNowTimeInMillsec();
+			auto dt = nowTime - oldTime;
+			(*iter)->setOldTime(nowTime);
+			if ((*iter)->checkHeart(dt) ) {
+				//std::cout << "[" << (*iter)->sockfd() << "]超时" << std::endl;
+				closesocket((*iter)->sockfd());
+				iter = _clients.erase(iter);
+				_clients_change = true;
+				
+				continue;
+			}
+		}
+	}
+
+		void ReadData(fd_set &fdReads) {
 #ifdef _WIN32
-
 			for (int n = 0; n <= (int)fdReads.fd_count - 1; n++) {
 
 				std::shared_ptr<ClientSocket>pClient = findClient(fdReads.fd_array[n]);
 				if (pClient == nullptr) {
-					std::cout << "接受数据时在vector中未发现client" << std::endl;
+					//std::cout << "接受数据时在vector中未发现client" << std::endl;
 					return;
 				}
 
 				int ret = RecvData(pClient);
 
 				if (-1 == ret) {
+					//有客户端退出
 					//auto iter = std::find(_clients.begin(), _clients.end(), fdReads.fd_array[n]);
 					auto iter = _clients.begin();
 					for (; iter != _clients.end(); iter++) {
 						if ((*iter)->sockfd() == fdReads.fd_array[n]) {
 							break;
 						}
-
 					}
+
 					if (iter != _clients.end()) {
+						closesocket((*iter)->sockfd());
 						_clients.erase(iter);
 						_clients_change = true;
 						//_pEvent->OnLeave(*iter);
@@ -293,8 +351,10 @@ public:
 					}
 				}
 #endif
-			}
-		}
+	}
+	//}
+
+		
 
 		void addClient(std::shared_ptr<ClientSocket>pClient) {
 		//void addClient(std::shared_ptr<ClientSocket> pClient) {

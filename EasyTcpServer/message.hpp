@@ -1,7 +1,7 @@
 #ifndef _message_hpp_
 #define _message_hpp_
 
-#include "alloc.h"
+//#include "alloc.h"
 
 //结构化数据-方式1
 struct DataPackage
@@ -16,7 +16,9 @@ enum CMD {
 	CMD_LOGINOUT,
 	CMD_LOGINOUT_RESULT,
 	CMD_NEW_USER_JOIN,
-	CMD_ERROR
+	CMD_ERROR,
+	CMD_HEART_C2S,
+	CMD_HEART_S2C
 };
 
 //消息头
@@ -75,6 +77,22 @@ struct LoginOutResult :public DataHeader
 		result = 0;
 	}
 	int  result;
+};
+
+struct HeartC2S :public DataHeader
+{
+	HeartC2S() {
+		dataLength = sizeof(HeartC2S);
+		cmd = CMD_HEART_C2S;
+	}
+};
+
+struct HeartS2C :public DataHeader
+{
+	HeartS2C() {
+		dataLength = sizeof(HeartS2C);
+		cmd = CMD_HEART_S2C;
+	}
 };
 
 #endif // !_message_

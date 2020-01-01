@@ -237,7 +237,7 @@ public:
 			pReturn->_pAlloc = nullptr;
 			pReturn->_pNext = nullptr;
 			//std::cout << "pReturn[" << pReturn << "]--allocReturn["<< (char*)pReturn + sizeof(MemoryBlock)<<"]" << std::endl;
-			std::cout << "NO111 In allocMem=[" << pReturn << "]--id=[" << pReturn->_nID << "]--size=[" << nSize << "]" << std::endl;
+			//std::cout << "NO111 In allocMem=[" << pReturn << "]--id=[" << pReturn->_nID << "]--size=[" << nSize << "]" << std::endl;
 			//freeMemory((char*)pReturn + sizeof(MemoryBlock));
 			return (char*)pReturn + sizeof(MemoryBlock);
 		}

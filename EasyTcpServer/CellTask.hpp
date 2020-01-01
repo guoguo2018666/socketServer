@@ -1,6 +1,6 @@
 #ifndef _CEllTASK_hpp_
 #define _CEllTASK_hpp_
-#include "alloc.h"
+//#include "alloc.h"
 #include <mutex>
 #include <thread>
 #include <atomic>

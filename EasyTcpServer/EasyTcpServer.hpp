@@ -2,7 +2,7 @@
 #define _EasyTcpServer_hpp_
 
 
-#include "alloc.h"
+//#include "alloc.h"
 #define CELLSERVER_NUM 4
 #ifdef _WIN32
 
@@ -161,7 +161,7 @@ public:
 		pMinServer->addClient(pClient);
 	}
 	void Start() {
-		for (int n = 0; n < 4; n++) {
+		for (int n = 0; n < 1; n++) {
 			std::shared_ptr<CellServer> ser = std::make_shared<CellServer>(_sock);
 			//auto ser = new CellServer(_sock);
 			_cellServers.push_back(ser);
