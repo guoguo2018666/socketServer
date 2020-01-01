@@ -118,7 +118,7 @@ public:
 		}
 
 		//有數據到來，重置心跳
-		//pClient->resetDtHeart();
+		pClient->resetDtHeart();
 
 		//std::cout << "接受客户端的数据长度[" << nLen << "]" << std::endl;
 
@@ -188,6 +188,8 @@ public:
 		{
 			HeartC2S *heartC2S = (HeartC2S *)(pClient->msgBuf());
 			pClient->resetDtHeart();
+			time_t nowTime = CELLTime::getNowTimeInMillsec();
+			pClient->setOldTime(nowTime);
 
 			//std::cout << "收到客戶端["<<pClient->sockfd()<<"]的心跳" << std::endl;
 
@@ -224,7 +226,7 @@ public:
 				for (auto pClient : _clientsBuff) {
 					_clients.push_back(pClient);
 					pClient->setOldTime(CELLTime::getNowTimeInMillsec());
-					std::cout << "++++++++++++++++[" << pClient->sockfd() << std::endl;
+					//std::cout << "++++++++++++++++[" << pClient->sockfd() << std::endl;
 				}
 				_clientsBuff.clear();
 				_clients_change = true;
@@ -238,7 +240,7 @@ public:
 
 			if (_clients.size() <= 0) {
 				Sleep(2000);
-				std::cout << "_clients length is ["<< _clients.size() <<"]" << std::endl;
+				std::cout << "_clients length is 0" << std::endl;
 				continue;
 			}
 
@@ -253,7 +255,7 @@ public:
 			if (_clients_change) {
 				
 				_clients_change = false;
-				std::cout << "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxchange clients size[" << _clients.size() << "]" << std::endl;
+				//std::cout << "change clients size[" << _clients.size() << "]" << std::endl;
 				//if(_clients.size()<)
 				for (int n = 0; n < (int)_clients.size(); n++) {
 
@@ -295,13 +297,13 @@ public:
 			time_t oldTime = (*iter)->getOldTime();
 			time_t nowTime = CELLTime::getNowTimeInMillsec();
 			auto dt = nowTime - oldTime;
-			(*iter)->setOldTime(nowTime);
+			
 			if ((*iter)->checkHeart(dt) ) {
 				//std::cout << "[" << (*iter)->sockfd() << "]超时" << std::endl;
 				closesocket((*iter)->sockfd());
 				iter = _clients.erase(iter);
 				_clients_change = true;
-				
+				//(*iter)->setOldTime(nowTime);
 				continue;
 			}
 		}

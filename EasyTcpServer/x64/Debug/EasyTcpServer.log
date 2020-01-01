@@ -1,5 +1,5 @@
 ﻿  main.cpp
-c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\cellserver.hpp(276): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\cellserver.hpp(278): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
 c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\easytcpserver.hpp(194): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
   EasyTcpServer.vcxproj -> C:\Users\home\Documents\Visual Studio 2015\Projects\beifen1\EasyTcpServer\x64\Debug\EasyTcpServer.exe
   EasyTcpServer.vcxproj -> C:\Users\home\Documents\Visual Studio 2015\Projects\beifen1\EasyTcpServer\x64\Debug\EasyTcpServer.pdb (Partial PDB)
