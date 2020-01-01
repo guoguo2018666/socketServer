@@ -18,7 +18,7 @@ c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytc
               Type=ClientSocket
           ]
   c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(142): note: 编译类 模板 成员函数“void ObjectPoolBase<ClientSocket,100>::operator delete(void *)”时
-  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\clientsocket.hpp(126): note: 参见对正在编译的函数 模板 实例化“void ObjectPoolBase<ClientSocket,100>::operator delete(void *)”的引用
+  c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\clientsocket.hpp(127): note: 参见对正在编译的函数 模板 实例化“void ObjectPoolBase<ClientSocket,100>::operator delete(void *)”的引用
   c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\clientsocket.hpp(40): note: 参见对正在编译的类 模板 实例化“ObjectPoolBase<ClientSocket,100>”的引用
 c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(109): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
   c:\users\home\documents\visual studio 2015\projects\beifen1\easytcpserver\easytcpserver\objectpool.hpp(93): note: 编译类 模板 成员函数“void ObjectPool<Type,100>::initPool(void)”时

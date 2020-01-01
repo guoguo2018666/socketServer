@@ -3,7 +3,7 @@
 #include "ClientSocket.hpp"
 #include "message.hpp"
 
-class CellSendMsgTask: public CellTask
+/*class CellSendMsgTask: public CellTask
 {
 public:
 	CellSendMsgTask(std::shared_ptr<ClientSocket> pClientSocket,DataHeader* pHeader) {
@@ -14,7 +14,7 @@ public:
 		/*if (_pHeader != nullptr) {
 			delete _pHeader;
 		}*/
-	}
+/*	}
 
 	void doTask() {
 		int ret = _pClientSocket->SendData(_pHeader);
@@ -27,6 +27,6 @@ private:
 	std::shared_ptr<ClientSocket> _pClientSocket;
 	DataHeader* _pHeader;
 
-};
+};*/
 
 

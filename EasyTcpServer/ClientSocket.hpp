@@ -75,7 +75,7 @@ public:
 
 
 		while (true) {
-
+			//定量發送
 			if (((_unSendSize + nSendLen) >= SEND_BUFF_SIZE)) {
 				//可copy的字节数
 				int nCanCopy = SEND_BUFF_SIZE - _unSendSize;
@@ -95,6 +95,7 @@ public:
 			else {
 				memcpy(_szSendBuf + _unSendSize, pSendBuf, nSendLen);
 				_unSendSize += nSendLen;
+				//定時發送
 				if (_timestemp.getSecond() >= 1.0) {
 					ret = send(_sockfd, _szSendBuf, _unSendSize, 0);
 					if (ret == SOCKET_ERROR) {

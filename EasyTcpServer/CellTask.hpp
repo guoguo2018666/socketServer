@@ -7,8 +7,10 @@
 #include <list>
 #include <chrono>
 
+#include<functional>
+
 //任务类型-基类
-class CellTask
+/*class CellTask
 {
 public:
 	CellTask() {
@@ -25,12 +27,13 @@ public:
 
 private:
 
-};
+};*/
 
 
 //服务类--执行任务的服务类型
 class CellTaskServer
 {
+	typedef std::function<void()> CellTask;
 public:
 	CellTaskServer() {
 
@@ -39,11 +42,12 @@ public:
 
 	}
 	//void addTask(CellTask* pCellTask) {
-	void addTask(std::shared_ptr<CellTask> pCellTask) {
-		std::cout << "addTask begin" << std::endl;
+	//void addTask(std::shared_ptr<CellTask> pCellTask) {
+	void addTask(CellTask pCellTask) {
+		//std::cout << "addTask begin" << std::endl;
 		std::lock_guard<std::mutex> lg(_mutex);
 		_tasksBuf.push_back(pCellTask);
-		std::cout << "addTask end" << std::endl;
+		//std::cout << "addTask end" << std::endl;
 	}
 	//启动线程
 	void start() {
@@ -73,8 +77,9 @@ public:
 
 			//处理任务
 			for (auto pTask : _tasks) {
-				pTask->doTask();
-				//delete pTask;
+				//pTask->doTask();
+				pTask();
+				
 			}
 			_tasks.clear();
 
@@ -82,9 +87,11 @@ public:
 	}
 private:
 	//任务数据
-	std::list<std::shared_ptr<CellTask>> _tasks;
+	//std::list<std::shared_ptr<CellTask>> _tasks;
+	std::list<CellTask> _tasks;
 	//任务数据缓冲区
-	std::list<std::shared_ptr<CellTask>> _tasksBuf;
+	//std::list<std::shared_ptr<CellTask>> _tasksBuf;
+	std::list<CellTask> _tasksBuf;
 	//改变数据缓冲区时需要加锁
 	std::mutex _mutex;
 	//线程

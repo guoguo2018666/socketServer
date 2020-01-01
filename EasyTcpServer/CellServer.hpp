@@ -328,8 +328,12 @@ public:
 		void addSendTask(std::shared_ptr<ClientSocket> pClient,DataHeader* header) {
 			//CellTask *pCellTask = new CellSendMsgTask(pClient, header);
 			//std::shared_ptr<CellSendMsgTask> pCellTask =std::make_shared<CellSendMsgTask>(pClient, header);
-			std::shared_ptr<CellTask> pCellTask = std::make_shared<CellSendMsgTask>(pClient, header);
-			_cellTaskServer.addTask(pCellTask);
+			//std::shared_ptr<CellTask> pCellTask = std::make_shared<CellSendMsgTask>(pClient, header);
+			//_cellTaskServer.addTask(pCellTask);
+			_cellTaskServer.addTask([pClient, header]() {
+				pClient->SendData(header); 
+				//delete header;
+			});
 		}
 private:
 	SOCKET _sock;
