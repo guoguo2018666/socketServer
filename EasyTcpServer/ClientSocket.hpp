@@ -27,7 +27,7 @@
 #include <mutex>
 #include <atomic>
 #include "CELLTimestemp.hpp"
-
+#include "CELLBuffer.hpp"
 
 #define RECV_BUFF_SIZE 1024*10
 #define SEND_BUFF_SIZE 1024*10
@@ -42,17 +42,18 @@
 class ClientSocket
 {
 public:
-	ClientSocket(SOCKET sockfd = INVALID_SOCKET) {
+	ClientSocket(SOCKET sockfd = INVALID_SOCKET):_recvBuffer(RECV_BUFF_SIZE),_sendBuffer(SEND_BUFF_SIZE) {
 		_sockfd = sockfd;
-		_unDoSize = 0;
-		memset(_szMsgBuf, 0, RECV_BUFF_SIZE);
-		_unSendSize = 0;
-		memset(_szSendBuf, 0, SEND_BUFF_SIZE);
+		//_unDoSize = 0;
+		//memset(_szMsgBuf, 0, RECV_BUFF_SIZE);
+		//_unSendSize = 0;
+		//memset(_szSendBuf, 0, SEND_BUFF_SIZE);
 
 		resetDtHeart();
 		resetLastSendTime();
 		_oldHeartTime = CELLTime::getNowTimeInMillsec();
 		_oldSendTime = CELLTime::getNowTimeInMillsec();;
+
 	}
 	virtual ~ClientSocket() {
 
@@ -61,7 +62,7 @@ public:
 	SOCKET sockfd() {
 		return _sockfd;
 	}
-	char * msgBuf() {
+	/*char * msgBuf() {
 		return _szMsgBuf;
 	}
 
@@ -71,26 +72,36 @@ public:
 
 	void setUnDoSize(int size) {
 		_unDoSize = size;
-	}
+	}*/
 
 	/*int SendData(DataHeader *header) {
 	}*/
+	bool hasMsg() {
+		return _recvBuffer.hasMsg();
+	}
+
+	DataHeader* frontMsg() {
+		return (DataHeader*)_recvBuffer.getData();
+	}
+
+	int podFrontMsg(int nLength) {
+		
+		if (hasMsg()) {
+			return _recvBuffer.pop(nLength);
+		}
+
+		return -1;
+	}
+
+	int RecvData() {
+		return _recvBuffer.Read4Socket(_sockfd);
+	}
 
 	//立即将缓冲区发送给客户端
 	int SendDataReal() {
-		if ((_unSendSize > 0) &&(INVALID_SOCKET != _sockfd)) {
-			int ret = send(_sockfd, _szSendBuf, _unSendSize, 0);
-			/*if (ret == SOCKET_ERROR) {
-				return ret;
-			}*/
-			memset(_szSendBuf, 0, SEND_BUFF_SIZE);
-			_unSendSize = 0;
-
-			resetLastSendTime();
-			_sendBuffFullCount = 0;
-			return ret;
-		}
-		return 0;
+		int ret = _sendBuffer.Write2Socket(_sockfd);
+		resetLastSendTime();
+		return ret;
 	}
 
 	//缓冲区的控制根据业务需求的差异而调整
@@ -103,49 +114,9 @@ public:
 		const char * pSendBuf = (const char*)header;
 		//int nCanCopy = SEND_BUFF_SIZE - _unSendSize;
 
-
-		//while (true) {
-			//定量發送
-			/*if (((_unSendSize + nSendLen) >= SEND_BUFF_SIZE)) {
-				//可copy的字节数
-				int nCanCopy = SEND_BUFF_SIZE - _unSendSize;
-				memcpy(_szSendBuf + _unSendSize, pSendBuf, nCanCopy);
-
-				ret = send(_sockfd, _szSendBuf, SEND_BUFF_SIZE, 0);
-				if (ret == SOCKET_ERROR) {
-					return ret;
-				}
-				
-				memset(_szSendBuf, 0, SEND_BUFF_SIZE);
-				_unSendSize = 0;
-
-				nSendLen -= nCanCopy;
-				pSendBuf = pSendBuf + nCanCopy;
-
-				resetLastSendTime();
-				//setOldSendTime(time_t oldSendTime)
-			}*/
-		//异步发送，小于缓冲区，则发送。大于则返回错误
-			if (((_unSendSize + nSendLen) <= SEND_BUFF_SIZE)) {
-				memcpy(_szSendBuf + _unSendSize, pSendBuf, nSendLen);
-				_unSendSize += nSendLen;
-
-				if (SEND_BUFF_SIZE ==_unSendSize) {
-					_sendBuffFullCount++;
-				}
-
-				//定时发送
-				/*time_t nowTime = CELLTime::getNowTimeInMillsec();
-				auto dt = nowTime - _oldSendTime;
-				checkSend(dt);*/
-				ret = 0;
-				//break;
-			}
-			else {//数据量超过缓冲区
-				_sendBuffFullCount++;
-			}
-		//}
-
+		if (_sendBuffer.push(pSendBuf, header->dataLength)) {
+			ret = 0;
+		}
 		return ret;
 	}
 
@@ -202,13 +173,16 @@ public:
 private:
 	SOCKET _sockfd;
 	//第二缓冲区--处理数据缓冲区
-	char _szMsgBuf[RECV_BUFF_SIZE];
+	//char _szMsgBuf[RECV_BUFF_SIZE];
 	//第二缓冲区中未处理数据的长度
-	int _unDoSize;
+	//int _unDoSize;
+
+	CELLBuffer _recvBuffer;
+	CELLBuffer _sendBuffer;
 
 	//发送缓冲区
-	char _szSendBuf[SEND_BUFF_SIZE];
-	int _unSendSize;
+	//char _szSendBuf[SEND_BUFF_SIZE];
+	//int _unSendSize;
 	CellTimestemp _timestemp;
 
 	//心跳計時

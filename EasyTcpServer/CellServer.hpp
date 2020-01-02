@@ -104,59 +104,39 @@ public:
 	int RecvData(std::shared_ptr<ClientSocket>pClient) {
 
 		//接受客户端数据
-		char * szRecv = pClient->msgBuf() + pClient->getUnDoSize();
+		//char * szRecv = pClient->msgBuf() + pClient->getUnDoSize();
 		//缓冲区
-		//int nLen = recv(pClient->sockfd(), _szRecv, RECV_BUFF_SIZE*10, 0);
-		//std::cout << "recv begin++++++++++++++++" << std::endl;
-		int nLen = recv(pClient->sockfd(), szRecv, RECV_BUFF_SIZE - pClient->getUnDoSize(), 0);
-		//std::cout << "recv end++++++++++++++++" << std::endl;
-		_pEvent->OnNetRecv(pClient);
-		_recvCount++;
-		//timePrintf(pClient->sockfd());
-		//int nLen = recv(cSock, szRecv, sizeof(header), 0);
+		//int nLen = recv(pClient->sockfd(), szRecv, RECV_BUFF_SIZE - pClient->getUnDoSize(), 0);
+		int nLen = pClient->RecvData();
 		if (nLen <= 0) {
-			std::cout <<"["<< pClient->sockfd()<< "]与服务器断开连接，任务结束" << std::endl;
+			std::cout << "[" << pClient->sockfd() << "]与服务器断开连接，任务结束" << std::endl;
 			return -1;
 		}
 
-		//有數據到來，重置心跳
+		_pEvent->OnNetRecv(pClient);
+		_recvCount++;
+		
+		//有数据到來，重置心跳
 		pClient->resetDtHeart();
-
-		//std::cout << "接受客户端的数据长度[" << nLen << "]" << std::endl;
-
-		//memcpy(pClient->msgBuf() + pClient->getUnDoSize(), _szRecv, nLen);
-		pClient->setUnDoSize(pClient->getUnDoSize() + nLen);
-
-		while (pClient->getUnDoSize() >= sizeof(DataHeader)) {
-			DataHeader *header = (DataHeader *)(pClient->msgBuf());
-			if (pClient->getUnDoSize() >= header->dataLength) {
-				//缓冲区剩余未处理消息的长度
-				int nSize = pClient->getUnDoSize() - header->dataLength;
-
-				OnNetMessage(pClient);
-
-				memcpy(pClient->msgBuf(), pClient->msgBuf() + header->dataLength, nSize);
-				pClient->setUnDoSize(nSize);
-			}
-			else {
-				//std::cout << "RecvData break" << std::endl;
-				//剩余未消息长度不够一条完整消息
-				break;
-			}
+	
+		while (pClient->hasMsg()) {	
+			DataHeader* pHeader = pClient->frontMsg();
+			OnNetMessage(pClient, pHeader);
+			pClient->podFrontMsg(pHeader->dataLength);
 		}
 
 		return 0;
 	}
 
-	int OnNetMessage(std::shared_ptr<ClientSocket> pClient) {
+	int OnNetMessage(std::shared_ptr<ClientSocket> pClient, DataHeader* header) {
 		//_recvCount++;
 		_pEvent->OnNetMsg(pClient);
-		DataHeader* header = (DataHeader*)(pClient->msgBuf());
+		//DataHeader* header = (DataHeader*)(pClient->msgBuf());
 		switch (header->cmd)
 		{
 		case CMD_LOGIN:
 		{
-			Login *login = (Login *)(pClient->msgBuf());
+			Login *login = (Login *)(header);
 
 			//忽略判断用户名和密码是否正确
 			//std::cout << "数据长度：" << login->dataLength << " ,命令：" << "login" << std::endl;
@@ -176,7 +156,7 @@ public:
 		}
 		case CMD_LOGINOUT:
 		{
-			LoginOut *loginout = (LoginOut *)(pClient->msgBuf());
+			LoginOut *loginout = (LoginOut *)(header);
 			//recv(cSock, (char*)&loginout + sizeof(DataHeader), sizeof(loginout) - sizeof(DataHeader), 0);
 			//忽略判断用户名和密码是否正确
 			std::cout << "数据长度：" << loginout->dataLength << " ,命令：" << "logout" << std::endl;
@@ -188,7 +168,7 @@ public:
 		}
 		case CMD_HEART_C2S:
 		{
-			HeartC2S *heartC2S = (HeartC2S *)(pClient->msgBuf());
+			HeartC2S *heartC2S = (HeartC2S *)(header);
 			pClient->resetDtHeart();
 			time_t nowTime = CELLTime::getNowTimeInMillsec();
 			pClient->setOldTime(nowTime);
@@ -290,10 +270,10 @@ public:
 			}
 
 			std::cout << "read[" << fdReads.fd_count << "]--write[" << fdWrites.fd_count << "]--Execpts[" << fdExecpts.fd_count << "]" << std::endl;
-			//ReadData(fdReads);
-			ReadDataNew(fdReads);
-			WriteDataNew(fdWrites);
-			//WriteData(fdWrites);
+			ReadData(fdReads);
+			//ReadDataNew(fdReads);
+			//WriteDataNew(fdWrites);
+			WriteData(fdWrites);
 			//WriteData(fdExecpts);
 			CheckTime();
 
@@ -422,9 +402,9 @@ public:
 					return;
 				}
 
-				if (!FD_ISSET(pClient->sockfd(), &fdReads)){
+				/*if (!FD_ISSET(pClient->sockfd(), &fdReads)){
 					std::cout << "xxxxxxxxxxxxx[" << pClient->sockfd() << "]没有select读消息" << std::endl;
-				}
+				}*/
 
 				int ret = RecvData(pClient);
 
