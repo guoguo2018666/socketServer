@@ -34,7 +34,7 @@
 
 
 
-
+#include "CELLNetWork.hpp"
 
 class EasyTcpServer:public INetEvent
 {
@@ -47,11 +47,13 @@ public:
 	}
 
 	void InitSocket() {
-#ifdef _WIN32
+/*#ifdef _WIN32
 		WORD ver = MAKEWORD(2, 2);
 		WSADATA dat;
 		WSAStartup(ver, &dat);
-#endif
+#endif*/
+
+		CELLNetWork::Instance();
 
 		//1建立1个socket
 		_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -109,7 +111,7 @@ public:
 #ifdef _WIN32	
 			//4关闭套接字
 			closesocket(_sock);
-			WSACleanup();
+			//WSACleanup();
 #else
 			close(_sock);
 #endif

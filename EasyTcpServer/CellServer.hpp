@@ -29,7 +29,7 @@
 #include "CellTask.hpp"
 #include "INetEvent.h"
 #include "CellSendMsgTask.hpp"
-
+#include"CELLLog.hpp"
 
 class CellServer
 {
@@ -268,7 +268,8 @@ public:
 				std::cout << "select发送错误，任务结束" << std::endl;
 				//return;
 			}
-
+			//CELLLog::Instance().Info("");
+			CELLLog::Info("abc");
 			std::cout << "read[" << fdReads.fd_count << "]--write[" << fdWrites.fd_count << "]--Execpts[" << fdExecpts.fd_count << "]" << std::endl;
 			ReadData(fdReads);
 			//ReadDataNew(fdReads);
