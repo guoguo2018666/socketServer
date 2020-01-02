@@ -107,7 +107,9 @@ public:
 		char * szRecv = pClient->msgBuf() + pClient->getUnDoSize();
 		//缓冲区
 		//int nLen = recv(pClient->sockfd(), _szRecv, RECV_BUFF_SIZE*10, 0);
+		//std::cout << "recv begin++++++++++++++++" << std::endl;
 		int nLen = recv(pClient->sockfd(), szRecv, RECV_BUFF_SIZE - pClient->getUnDoSize(), 0);
+		//std::cout << "recv end++++++++++++++++" << std::endl;
 		_pEvent->OnNetRecv(pClient);
 		_recvCount++;
 		//timePrintf(pClient->sockfd());
@@ -196,7 +198,11 @@ public:
 			//向客戶端回送消息
 
 			std::shared_ptr<HeartS2C>ret (new HeartS2C());
-			pClient->SendData((DataHeader*)(ret.get()));
+			int retSend = pClient->SendData((DataHeader*)(ret.get()));
+			if (SOCKET_ERROR == retSend) {
+				//发送缓冲区满了，消息没发出去
+				std::cout << "发送缓冲区满了" << std::endl;
+			}
 
 			//begin服務器發送與接收分離代碼，現在先注釋掉
 			//addSendTask(pClient, (DataHeader*)ret);
@@ -263,9 +269,7 @@ public:
 
 					if (_maxSock < _clients[n]->sockfd()) {
 						_maxSock = _clients[n]->sockfd();
-					}
-
-					
+					}		
 				}
 
 				memcpy(&_fdRead_bak, &fdReads, sizeof(fd_set));
@@ -273,6 +277,9 @@ public:
 			else {
 				memcpy(&fdReads, &_fdRead_bak, sizeof(fd_set));
 			}
+
+			memcpy(&fdWrites, &_fdRead_bak, sizeof(fd_set));
+			memcpy(&fdExecpts, &_fdRead_bak, sizeof(fd_set));
 
 			timeval t = { 0,0 };
 			int ret = select(_maxSock + 1, &fdReads, &fdWrites, &fdExecpts, &t);
@@ -282,10 +289,12 @@ public:
 				//return;
 			}
 
-			ReadData(fdReads);
-
-			
-
+			std::cout << "read[" << fdReads.fd_count << "]--write[" << fdWrites.fd_count << "]--Execpts[" << fdExecpts.fd_count << "]" << std::endl;
+			//ReadData(fdReads);
+			ReadDataNew(fdReads);
+			WriteDataNew(fdWrites);
+			//WriteData(fdWrites);
+			//WriteData(fdExecpts);
 			CheckTime();
 
 		}
@@ -309,14 +318,112 @@ public:
 		}
 	}
 
-		void ReadData(fd_set &fdReads) {
+	void WriteData(fd_set &fdWrites) {
+#ifdef _WIN32
+		for (int n = 0; n <= (int)fdWrites.fd_count - 1; n++) {
+			
+
+			std::shared_ptr<ClientSocket>pClient = findClient(fdWrites.fd_array[n]);
+			if (pClient == nullptr) {
+				//std::cout << "接受数据时在vector中未发现client" << std::endl;
+				return;
+			}
+
+			//int ret = RecvData(pClient);
+			//将缓冲区数据发送出去
+			int ret = pClient->SendDataReal();
+
+			if (-1 == ret) {
+				//有客户端退出
+				//auto iter = std::find(_clients.begin(), _clients.end(), fdReads.fd_array[n]);
+				auto iter = _clients.begin();
+				for (; iter != _clients.end(); iter++) {
+					if ((*iter)->sockfd() == fdWrites.fd_array[n]) {
+						break;
+					}
+				}
+
+				if (iter != _clients.end()) {
+					closesocket((*iter)->sockfd());
+					_clients.erase(iter);
+					_clients_change = true;
+					//_pEvent->OnLeave(*iter);
+				}
+			}
+		}
+#else
+		for (int n = 0; n < (int)_clients.size(); n++) {
+			//FD_SET(g_clients[n], &fdReads);
+			if (FD_ISSET(_clients[n], &fdReads)) {
+				int ret = RecvData(fdWrites.fd_array[n]);
+				if (-1 == ret) {
+					auto iter = _clients.begin() + n;
+					if (iter != _clients.end()) {
+						_clients.erase(iter);
+						_clients_change = true;
+					}
+				}
+			}
+#endif
+		}
+
+		void WriteDataNew(fd_set &fdWrites) {
+
+			auto iter = _clients.begin();
+			for (; iter != _clients.end(); iter++) {
+				if (!FD_ISSET((*iter)->sockfd(), &fdWrites)) {
+					//std::cout << "没有没有[" << (*iter)->sockfd() << "]没有select写写写消息" << std::endl;
+					continue;
+				}
+				//std::cout << "xxxxxxxxxxxxx[" << (*iter)->sockfd() << "]xxxxxselect写写消息" << std::endl;
+				//int ret = RecvData(*iter);
+				int ret = (*iter)->SendDataReal();
+				//std::cout << "endxxxxxxxxxxxxxxxxxxxxxxxxend"<< std::endl;
+				if (-1 == ret) {
+					//std::cout << "xxxx写写写删除[" << (*iter)->sockfd() << "]" << std::endl;
+					closesocket((*iter)->sockfd());
+					iter = _clients.erase(iter);
+					_clients_change = true;
+					continue;
+				}
+			}
+
+		}
+
+		void ReadDataNew(fd_set &fdReads) {
+
+			auto iter = _clients.begin();
+			for (; iter != _clients.end(); iter++) {
+				if (!FD_ISSET((*iter)->sockfd(), &fdReads)) {
+					//std::cout << "没有没有[" << (*iter)->sockfd() << "]没有select读消息" << std::endl;
+					continue;
+				}
+				//std::cout << "xxxxxxxxxxxxx[" << (*iter)->sockfd() << "]xxxxxselect读消息" << std::endl;
+				int ret = RecvData(*iter);
+				//std::cout << "endxxxxxxxxxxxxxxxxxxxxxxxxend"<< std::endl;
+				if (-1 == ret) {
+					std::cout << "xxxx删除[" << (*iter)->sockfd() <<"]"<< std::endl;
+					closesocket((*iter)->sockfd());
+					iter = _clients.erase(iter);
+					_clients_change = true;
+					continue;
+				}
+			}
+
+		}
+
+	void ReadData(fd_set &fdReads) {
 #ifdef _WIN32
 			for (int n = 0; n <= (int)fdReads.fd_count - 1; n++) {
-
+				
 				std::shared_ptr<ClientSocket>pClient = findClient(fdReads.fd_array[n]);
 				if (pClient == nullptr) {
 					//std::cout << "接受数据时在vector中未发现client" << std::endl;
 					return;
+				}
+
+				if (!FD_ISSET(pClient->sockfd(), &fdReads)){
+					std::cout << "xxxxxxxxxxxxx[" << pClient->sockfd() << "]没有select读消息" << std::endl;
 				}
 
 				int ret = RecvData(pClient);
@@ -356,9 +463,8 @@ public:
 	}
 	//}
 
-		
-
-		void addClient(std::shared_ptr<ClientSocket>pClient) {
+	
+	void addClient(std::shared_ptr<ClientSocket>pClient) {
 		//void addClient(std::shared_ptr<ClientSocket> pClient) {
 			std::lock_guard<std::mutex> lg(_mutex);
 			_clientsBuff.push_back(pClient);

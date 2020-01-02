@@ -78,18 +78,23 @@ public:
 
 	//立即将缓冲区发送给客户端
 	int SendDataReal() {
-		if ((_unSendSize > 0) &&(SOCKET_ERROR != _sockfd)) {
+		if ((_unSendSize > 0) &&(INVALID_SOCKET != _sockfd)) {
 			int ret = send(_sockfd, _szSendBuf, _unSendSize, 0);
-			if (ret == SOCKET_ERROR) {
+			/*if (ret == SOCKET_ERROR) {
 				return ret;
-			}
+			}*/
 			memset(_szSendBuf, 0, SEND_BUFF_SIZE);
 			_unSendSize = 0;
+
+			resetLastSendTime();
+			_sendBuffFullCount = 0;
 			return ret;
 		}
 		return 0;
 	}
 
+	//缓冲区的控制根据业务需求的差异而调整
+	//
 	//发送数据
 	int SendData(DataHeader *header) {
 		int ret = SOCKET_ERROR;
@@ -99,9 +104,9 @@ public:
 		//int nCanCopy = SEND_BUFF_SIZE - _unSendSize;
 
 
-		while (true) {
+		//while (true) {
 			//定量發送
-			if (((_unSendSize + nSendLen) >= SEND_BUFF_SIZE)) {
+			/*if (((_unSendSize + nSendLen) >= SEND_BUFF_SIZE)) {
 				//可copy的字节数
 				int nCanCopy = SEND_BUFF_SIZE - _unSendSize;
 				memcpy(_szSendBuf + _unSendSize, pSendBuf, nCanCopy);
@@ -119,32 +124,27 @@ public:
 
 				resetLastSendTime();
 				//setOldSendTime(time_t oldSendTime)
-			}
-			else {
+			}*/
+		//异步发送，小于缓冲区，则发送。大于则返回错误
+			if (((_unSendSize + nSendLen) <= SEND_BUFF_SIZE)) {
 				memcpy(_szSendBuf + _unSendSize, pSendBuf, nSendLen);
 				_unSendSize += nSendLen;
 
-
-				//time_t oldTime = (*iter)->getOldTime();
-				time_t nowTime = CELLTime::getNowTimeInMillsec();
-				auto dt = nowTime - _oldSendTime;
-				//setOldTime(nowTime);
-				checkSend(dt);
-				
-				//定時發送
-				/*if (_timestemp.getSecond() >= 1.0) {
-					ret = send(_sockfd, _szSendBuf, _unSendSize, 0);
-					if (ret == SOCKET_ERROR) {
-						return ret;
-					}
-					memset(_szSendBuf, 0, SEND_BUFF_SIZE);
-					_unSendSize = 0;
+				if (SEND_BUFF_SIZE ==_unSendSize) {
+					_sendBuffFullCount++;
 				}
-				*/
+
+				//定时发送
+				/*time_t nowTime = CELLTime::getNowTimeInMillsec();
+				auto dt = nowTime - _oldSendTime;
+				checkSend(dt);*/
 				ret = 0;
-				break;
+				//break;
 			}
-		}
+			else {//数据量超过缓冲区
+				_sendBuffFullCount++;
+			}
+		//}
 
 		return ret;
 	}
@@ -189,7 +189,7 @@ public:
 	bool checkSend(time_t dt) {
 		//_dtSend += dt;
 		if (dt >= CLIENT_SEND_BUFF_TIME) {
-			//std::cout << "发送[" << _sockfd << "]--time[" << dt << "]" << std::endl;
+			std::cout << "超時发送[" << _sockfd << "]--[" << dt << "]" << std::endl;
 			//立刻将发送缓冲区的数据发送出去
 			SendDataReal();
 			////重制发送计数
@@ -218,6 +218,9 @@ private:
 	//上次发送消息数据的时间
 	//time_t _dtSend;
 	time_t _oldSendTime;
+
+	//发送缓冲区遇到写满情况
+	int _sendBuffFullCount = 0;
 	
 
 };

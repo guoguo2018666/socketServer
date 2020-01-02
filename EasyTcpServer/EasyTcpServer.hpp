@@ -141,6 +141,13 @@ public:
 			//_clients.push_back(new ClientSocket(cSock));
 			//std::shared_ptr<ClientSocket> pClientSocket = std::make_shared<ClientSocket>(cSock);
 			//addClientToCellServer(new ClientSocket(cSock));
+			//设置send,recv为非阻塞的
+			//int timeout = 2000; //2s
+			//int ret = setsockopt(cSock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+			//int ret = setsockopt(cSock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+			struct timeval timeout = { 2,0 };//3s
+			int ret1 = setsockopt(cSock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
+			ret1 = setsockopt(cSock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
 			std::shared_ptr<ClientSocket> pClientSocket(new ClientSocket(cSock));
 			addClientToCellServer(pClientSocket);
 		}
