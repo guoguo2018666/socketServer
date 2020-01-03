@@ -1,0 +1,1 @@
+SetLogPath sccessed,path[serverLog.txt],mode[w]abc

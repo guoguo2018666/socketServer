@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <vector>
-#include "message.hpp"
+//#include "message.hpp"
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -42,7 +42,7 @@
 class ClientSocket
 {
 public:
-	ClientSocket(SOCKET sockfd = INVALID_SOCKET):_recvBuffer(RECV_BUFF_SIZE),_sendBuffer(SEND_BUFF_SIZE) {
+	ClientSocket(SOCKET sockfd = INVALID_SOCKET):_recvBuffer(RECV_BUFF_SIZE,1),_sendBuffer(SEND_BUFF_SIZE,2) {
 		_sockfd = sockfd;
 		//_unDoSize = 0;
 		//memset(_szMsgBuf, 0, RECV_BUFF_SIZE);
@@ -168,6 +168,10 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	bool needWrite() {
+		return _sendBuffer.needWrite();
 	}
 
 private:

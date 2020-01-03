@@ -140,10 +140,10 @@ public:
 
 			//忽略判断用户名和密码是否正确
 			//std::cout << "数据长度：" << login->dataLength << " ,命令：" << "login" << std::endl;
-
+			std::cout << "CMD_LOGIN" << std::endl;
 			LoginResult *ret = new LoginResult();
 			//send(pClient->sockfd(), (char*)&ret, sizeof(ret), 0);
-			pClient->SendData((DataHeader*)&ret);
+			pClient->SendData((DataHeader*)ret);
 			
 			//begin服務器發送與接收分離代碼，現在先注釋掉
 			//addSendTask(pClient, (DataHeader*)ret);
@@ -168,6 +168,7 @@ public:
 		}
 		case CMD_HEART_C2S:
 		{
+			//std::cout << "CMD_HEART_C2S" << std::endl;
 			HeartC2S *heartC2S = (HeartC2S *)(header);
 			pClient->resetDtHeart();
 			time_t nowTime = CELLTime::getNowTimeInMillsec();
@@ -269,8 +270,8 @@ public:
 				//return;
 			}
 			//CELLLog::Instance().Info("");
-			CELLLog::Info("abc");
-			std::cout << "read[" << fdReads.fd_count << "]--write[" << fdWrites.fd_count << "]--Execpts[" << fdExecpts.fd_count << "]" << std::endl;
+			//CELLLog::Info("abc");
+			//std::cout << "read[" << fdReads.fd_count << "]--write[" << fdWrites.fd_count << "]--Execpts[" << fdExecpts.fd_count << "]" << std::endl;
 			ReadData(fdReads);
 			//ReadDataNew(fdReads);
 			//WriteDataNew(fdWrites);

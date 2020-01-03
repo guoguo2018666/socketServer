@@ -1,17 +1,17 @@
 #ifndef _CELL_BUFFER_HPP_
 #define _CELL_BUFFER_HPP_
 #include <memory>
-#include<functional>
+//#include<functional>
 //#define RECV_BUFF_SIZE 1024*10
 
 class CELLBuffer
 {
 public:
-	CELLBuffer(int nSize) {
+	CELLBuffer(int nSize,int nFlag) {
 		_nBuffFullCount = 0;
 		_unDoSize = 0;
 		_nSize = nSize;
-
+		_nSendOrRecvFlag = nFlag;
 		_pMsgBuf = new char[_nSize];
 	}
 	~CELLBuffer() {
@@ -34,6 +34,7 @@ public:
 		}
 
 		int nLeftSize = _unDoSize - nLength;
+		//std::cout << "pop--_unDoSize[" << _unDoSize << "]--nLength[" << nLength << "]--nLeftSize["<< nLeftSize<<"]" << std::endl;
 		memcpy(_pMsgBuf, _pMsgBuf + nLength, nLeftSize);
 		_unDoSize = nLeftSize;
 		ret = 0;
@@ -64,6 +65,7 @@ public:
 			return true;
 		}
 		else {//数据量超过缓冲区
+			std::cout <<"["<< _nSendOrRecvFlag << "]缓冲区满" << std::endl;
 			_nBuffFullCount++;
 		}
 
@@ -90,29 +92,38 @@ public:
 
 	int Read4Socket(SOCKET sockfd) {
 		int nRet = -1;
-		//if (_nSize - _unDoSize > 0) {
+		//std::cout << "_unDoSize[" << _unDoSize << "]--_nSize[" << _nSize << "]--_nSize-_unDoSize[" << _nSize - _unDoSize << "]" << std::endl;
+		if ( _unDoSize < _nSize) {
 			char * szRecv = _pMsgBuf + _unDoSize;
 			int nLength = recv(sockfd, szRecv, _nSize - _unDoSize, 0);
-			
+			//std::cout << "nLength[" << nLength<<"]" << std::endl;
 			if (nLength <= 0) {
 				//std::cout << "[" << sockfd << "]与服务器断开连接，任务结束" << std::endl;
 				return nLength;
 			}
 			_unDoSize += nLength;
 			nRet = nLength;
-		//}
+		}
 		return nRet;
 
 	}
 
 	bool hasMsg() {
-		DataHeader* pDataHeader = (DataHeader*)_pMsgBuf;
+		
 		if (_unDoSize >= sizeof(DataHeader)) {
+			DataHeader* pDataHeader = (DataHeader*)_pMsgBuf;
 			if (_unDoSize >= pDataHeader->dataLength) {
 				return true;
 			}
 		}
 
+		return false;
+	}
+
+	bool needWrite() {
+		if (_unDoSize > 0) {
+			return true;
+		}
 		return false;
 	}
 
@@ -141,11 +152,13 @@ private:
 	//缓冲区中未处理数据的长度
 	int _unDoSize;
 
-	//缓冲区总的空间大小
+	
 	int _nSize;
 
 	//缓冲区是否被放满的次数
 	int _nBuffFullCount;
+
+	int _nSendOrRecvFlag = 0;
 
 };
 
